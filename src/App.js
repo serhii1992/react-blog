@@ -50,7 +50,7 @@ const [modal, setModal] = useState(false)
 
   return (
     <div className="App">
-      <MyButton onClick={()=>{setModal(true)}} style={{margenTop: 30}}>Создать пост</MyButton>
+      <MyButton onClick={()=>{setModal(true)} } style={{margenTop: 30}}>Создать пост</MyButton>
       <MyModal visible={modal} setVisible={setModal}>
         <Postform create={createPost} />
       </MyModal>
@@ -58,7 +58,7 @@ const [modal, setModal] = useState(false)
       <Postlist
         removePost={removePost}
         posts={sortedAndSearchedPosts}
-        title={"Посты про джс"}
+        title={"Список постов"}
       />
     </div>
   );
