@@ -1,46 +1,37 @@
 import React from "react";
 import "./Styles/App.css";
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Postlist from "./Components/PostList";
 import Postform from "./Components/PostForm";
 import PostFilter from "./Components/PostFilter";
 import MyModal from "./Components/UI/MyModal/MyModal";
 import MyButton from "./Components/UI/button/MyButton";
+import { usePosts, useSortedPost } from "./hooks/usePosts";
+import axios from "axios";
+import apiPosts from "./API/apiPosts";
+import Loader from "./Components/UI/loader/Loader";
+import { useFetching } from "./hooks/useFetching";
 
 function App() {
-  console.log("компонент отрендирился");
-  const [posts, setPosts] = useState([
-    { id: 1, title: "бб", body: "Description" },
-    { id: 2, title: "яя", body: "Description" },
-    { id: 3, title: "гг", body: "Description" },
-  ]);
+  const [posts, setPosts] = useState([]);
+  const [modal, setModal] = useState(false);
+  const [filter, setFilter] = useState({ searchQuery: "", selectedSort: "" });
+  const sortedPosts = useSortedPost(posts, filter.selectedSort);
+  const sortedAndSearchedPosts = usePosts(sortedPosts, filter.searchQuery);
+  const [fetching, isPostsLoading, error] = useFetching(fetchPosts)
 
-const [modal, setModal] = useState(false)
+  useEffect(async () => {
+    fetching()
+  }, []);
 
-  const [filter, setFilter] = useState({
-    searchQuery: "",
-    selectedSort: "",
-  });
-
-  const sortedPosts = useMemo(() => {
-    console.log("Функция отработала");
-    if (filter.selectedSort) {
-      return [...posts].sort((a, b) =>
-        a[filter.selectedSort].localeCompare(b[filter.selectedSort])
-      );
-    }
-    return posts;
-  }, [filter.selectedSort, posts]);
-
-  const sortedAndSearchedPosts = useMemo(() => {
-    return sortedPosts.filter((post) =>
-      post.title.toLowerCase().includes(filter.searchQuery.toLowerCase())
-    );
-  }, [posts, filter.searchQuery, filter.selectedSort]);
+  async function fetchPosts() {
+    const posts = await apiPosts.getALL();
+    setPosts(posts);
+  }
 
   const createPost = (newPost) => {
     setPosts([...posts, newPost]);
-    setModal(false)
+    setModal(false);
   };
 
   const removePost = (post) => {
@@ -50,16 +41,30 @@ const [modal, setModal] = useState(false)
 
   return (
     <div className="App">
-      <MyButton onClick={()=>{setModal(true)} } style={{margenTop: 30}}>Создать пост</MyButton>
+      <div>
+        <MyButton onClick={fetchPosts}>GET POSTS</MyButton>
+      </div>
+      <MyButton
+        onClick={() => {
+          setModal(true);
+        }}
+        style={{ margenTop: 30 }}
+      >
+        Создать пост
+      </MyButton>
       <MyModal visible={modal} setVisible={setModal}>
         <Postform create={createPost} />
       </MyModal>
       <PostFilter filter={filter} setFilter={setFilter} />
-      <Postlist
-        removePost={removePost}
-        posts={sortedAndSearchedPosts}
-        title={"Список постов"}
-      />
+      {error && <h1>Произошла ошибка ${error} </h1>}
+      {isPostsLoading 
+      ? <Loader/>
+      :  <Postlist
+          removePost={removePost}
+          posts={sortedAndSearchedPosts}
+          title={"Список постов"}
+        />
+      }
     </div>
   );
 }
