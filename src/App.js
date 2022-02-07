@@ -11,23 +11,36 @@ import axios from "axios";
 import apiPosts from "./API/apiPosts";
 import Loader from "./Components/UI/loader/Loader";
 import { useFetching } from "./hooks/useFetching";
+import { getPagesCount} from "./utils/pages";
+import Pagination from "./Components/UI/pagination/Pagination";
 
 function App() {
   const [posts, setPosts] = useState([]);
   const [modal, setModal] = useState(false);
   const [filter, setFilter] = useState({ searchQuery: "", selectedSort: "" });
+  const [totalPages, setTotaPages] = useState(0);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
   const sortedPosts = useSortedPost(posts, filter.selectedSort);
   const sortedAndSearchedPosts = usePosts(sortedPosts, filter.searchQuery);
-  const [fetching, isPostsLoading, error] = useFetching(fetchPosts)
+  const [fetching, isPostsLoading, postError] = useFetching(fetchPosts);
+ 
+
+  const changePage = (page) => {
+    setPage(page);
+    fetching(limit, page);
+  };
+
+  async function fetchPosts(limit, page) {
+    const respons = await apiPosts.getALL(limit, page);
+    setPosts(respons.data);
+    const totalPosts = respons.headers["x-total-count"];
+    setTotaPages(getPagesCount(totalPosts, limit));
+  }
 
   useEffect(async () => {
-    fetching()
+    fetching(limit, page);
   }, []);
-
-  async function fetchPosts() {
-    const posts = await apiPosts.getALL();
-    setPosts(posts);
-  }
 
   const createPost = (newPost) => {
     setPosts([...posts, newPost]);
@@ -56,15 +69,21 @@ function App() {
         <Postform create={createPost} />
       </MyModal>
       <PostFilter filter={filter} setFilter={setFilter} />
-      {error && <h1>Произошла ошибка ${error} </h1>}
-      {isPostsLoading 
-      ? <Loader/>
-      :  <Postlist
+      {postError && (
+        <h1 style={{ textAlign: "center", fontSize: "42px" }}>
+          Произошла ошибка ${postError}{" "}
+        </h1>
+      )}
+      {isPostsLoading ? (
+        <Loader />
+      ) : (
+        <Postlist
           removePost={removePost}
           posts={sortedAndSearchedPosts}
           title={"Список постов"}
         />
-      }
+      )}
+      <Pagination totalPages={totalPages} page={page} changePage={changePage}/>
     </div>
   );
 }

@@ -43,3 +43,26 @@
     transition: all 500ms ease-in;
   }
   
+
+  /* pagination */
+  
+.pagination{
+display: flex;
+justify-content: center;
+align-items: center;
+margin-top: 10px;
+}
+
+.pagination__item{
+ display: block;
+text-align: center;
+margin: 5px;
+min-width: 20px;
+background-color: cornflowerblue;
+cursor: pointer;
+border: 1px solid teal;
+}
+
+.pagination__item.activ{
+  background-color: teal;
+}
