@@ -18,8 +18,9 @@ const Pagination = ({totalPages, page, changePage}) => {
             {p}
           </span>
         ))}
+        
     </div>
   );
 };
-
+  
 export default Pagination;
