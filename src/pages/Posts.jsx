@@ -53,9 +53,6 @@ function Posts() {
 
   return (
     <div className="App">
-      <div>
-        <MyButton onClick={fetchPosts}>GET POSTS</MyButton>
-      </div>
       <MyButton
         onClick={() => {
           setModal(true);
