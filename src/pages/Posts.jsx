@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import "../Styles/App.css";
 import { useState, useEffect } from "react";
 import Postlist from "../Components/PostList";
@@ -10,10 +10,10 @@ import { usePosts, useSortedPost } from "../hooks/usePosts";
 import apiPosts from "../API/apiPosts";
 import Loader from "../Components/UI/loader/Loader";
 import { useFetching } from "../hooks/useFetching";
-import { getPagesCount} from "../utils/pages";
+import { getPagesCount } from "../utils/pages";
 import Pagination from "../Components/UI/pagination/Pagination";
 
-function Posts() {
+export default function Posts() {
   const [posts, setPosts] = useState([]);
   const [modal, setModal] = useState(false);
   const [filter, setFilter] = useState({ searchQuery: "", selectedSort: "" });
@@ -23,23 +23,36 @@ function Posts() {
   const sortedPosts = useSortedPost(posts, filter.selectedSort);
   const sortedAndSearchedPosts = usePosts(sortedPosts, filter.searchQuery);
   const [fetching, isPostsLoading, postError] = useFetching(fetchPosts);
- 
+  const lastElement = useRef();
+  const observer = useRef();
 
-  const changePage = (page) => {
-    setPage(page);
+  useEffect(() => {
     fetching(limit, page);
-  };
+  }, [page]);
+
+  useEffect(() => {
+    if (isPostsLoading) return;
+    if (observer.current) observer.current.disconnect();
+    var callback = function (entries, observer) {
+      if (entries[0].isIntersecting && page < totalPages) {
+        console.log("див в зоне видимости");
+        setPage(page + 1);
+      }
+    };
+    observer.current = new IntersectionObserver(callback);
+    observer.current.observe(lastElement.current);
+  }, [isPostsLoading]);
 
   async function fetchPosts(limit, page) {
     const respons = await apiPosts.getALL(limit, page);
-    setPosts(respons.data);
+    setPosts([...posts, ...respons.data]);
     const totalPosts = respons.headers["x-total-count"];
     setTotaPages(getPagesCount(totalPosts, limit));
   }
 
-  useEffect(async () => {
-    fetching(limit, page);
-  }, []);
+  const changePage = (page) => {
+    setPage(page);
+  };
 
   const createPost = (newPost) => {
     setPosts([...posts, newPost]);
@@ -70,18 +83,14 @@ function Posts() {
           Произошла ошибка ${postError}{" "}
         </h1>
       )}
-      {isPostsLoading ? (
-        <Loader />
-      ) : (
-        <Postlist
-          removePost={removePost}
-          posts={sortedAndSearchedPosts}
-          title={"Список постов"}
-        />
-      )}
-      <Pagination totalPages={totalPages} page={page} changePage={changePage}/>
+      <Postlist
+        removePost={removePost}
+        posts={sortedAndSearchedPosts}
+        title={"Список постов"}
+      />
+      <div ref={lastElement}></div>
+      {isPostsLoading && <Loader />}
+      <Pagination totalPages={totalPages} page={page} changePage={changePage} />
     </div>
   );
 }
-
-export default Posts;

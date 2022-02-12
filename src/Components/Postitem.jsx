@@ -8,7 +8,7 @@ let navigate = useNavigate()
   return (
     <div className="post">
       <div className="post__content">
-        <div> <strong> {props.post.id}. {props.post.title}</strong></div>
+        <div> <strong>{props.post.title}</strong></div>
         <div className="body">{props.post.body}</div>
       </div>
       <div className="post__btns">

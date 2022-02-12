@@ -6,6 +6,17 @@ import { useContext } from "react";
 const Navbar = () => {
   const {isAuthorized, setIsAuthorized} = useContext(AuthContext);
 
+  const logoutAndSingin = ()=>{
+    if(!localStorage.getItem('auth')){
+      setIsAuthorized(true);
+      localStorage.setItem('auth', 'true')
+    } else{
+      setIsAuthorized(false)
+      localStorage.removeItem('auth')
+    }
+
+  }
+
   return (
     <div className={"navbar"}>
       <div className={"container navbar__container"}>
@@ -17,7 +28,7 @@ const Navbar = () => {
             About
           </Link>
         </div>
-        <Link onClick={()=>{setIsAuthorized(!isAuthorized)}} to="/login" className={"navbar__link"}>
+        <Link onClick={logoutAndSingin} to="/login" className={"navbar__link"}>
           {isAuthorized ? 'Log out' : 'Sing in'}
         </Link>
       </div>

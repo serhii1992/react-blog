@@ -5,11 +5,13 @@ import { AuthContext } from "../context/context";
 import { useContext } from "react";
 
 const Login = () => {
-    const {isAuthorized, setIsAuthorized} = useContext(AuthContext);
+  const { isAuthorized, setIsAuthorized } = useContext(AuthContext);
 
   const login = (e) => {
     e.preventDefault();
-    setIsAuthorized(!isAuthorized)
+
+    setIsAuthorized(true);
+    localStorage.setItem('auth', 'true')
   };
 
   return (
